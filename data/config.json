@@ -1,0 +1,7 @@
+{
+  "ssid": "",
+  "password": "",
+  "mqtt_server": "mqtt.eclipse.org",
+  "mqtt_user": "",
+  "mqtt_password": ""
+}

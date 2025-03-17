@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление реле</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body { padding-top: 70px; }
+    .card .badge {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Управление реле</h1>
+    <!-- Перекрестная ссылка на страницу настроек -->
+    <a href="/config" class="btn btn-secondary mb-3">Настройки</a>
+    <div class="row" id="relays">
+      <!-- Карточки для реле будут добавлены через JavaScript -->
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const relayContainer = document.getElementById("relays");
+      const relayCount = 8;
+      
+      for (let i = 0; i < relayCount; i++) {
+        const col = document.createElement("div");
+        col.className = "col-md-3 mb-3";
+        col.innerHTML = `
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Реле ${i+1}</h5>
+              <span id="relay-state-${i}" class="badge badge-secondary">OFF</span><br>
+              <button class="btn btn-success" onclick="toggleRelay(${i}, true)">Включить</button>
+              <button class="btn btn-danger" onclick="toggleRelay(${i}, false)">Выключить</button>
+            </div>
+          </div>
+        `;
+        relayContainer.appendChild(col);
+        // Получаем актуальное состояние при загрузке
+        getRelayState(i);
+      }
+      
+      // Периодически обновляем состояния реле (например, раз в 3 секунды)
+      setInterval(() => {
+        for (let i = 0; i < relayCount; i++) {
+          getRelayState(i);
+        }
+      }, 3000);
+    });
+    
+    function toggleRelay(relay, state) {
+      fetch(`/relay?num=${relay}&state=${state ? 'ON' : 'OFF'}`)
+        .then(response => response.text())
+        .then(data => {
+          console.log(data);
+          // После переключения запрашиваем обновлённое состояние
+          getRelayState(relay);
+        })
+        .catch(error => console.error('Ошибка:', error));
+    }
+    
+    function getRelayState(relay) {
+      fetch(`/relaystate?num=${relay}`)
+        .then(response => response.json())
+        .then(data => {
+          const badge = document.getElementById(`relay-state-${relay}`);
+          if (data.state === "ON") {
+            badge.textContent = "ON";
+            badge.className = "badge badge-success";
+          } else {
+            badge.textContent = "OFF";
+            badge.className = "badge badge-secondary";
+          }
+        })
+        .catch(error => console.error('Ошибка получения состояния:', error));
+    }
+  </script>
+</body>
+</html>
